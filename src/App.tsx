@@ -43,7 +43,8 @@ function getDueDate(surgeryDate, months) {
   d.setMonth(d.getMonth() + months);
   return d;
 }
-  });function enrich(p) {
+});
+function enrich(p) {
   const fus = MILESTONES.map(m => {
     const dueDate = getDueDate(p.surgery_date, m);
     const days = getDaysUntil(dueDate);
