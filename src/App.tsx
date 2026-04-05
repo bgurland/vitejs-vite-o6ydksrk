@@ -10,7 +10,8 @@ const SESSION_KEY = "ok_tracker_auth";
 const MILESTONES = [6, 12, 24];
 
 function getDueDate(surgeryDate, months) {
-  const d = new Date(surgeryDate);
+  const [y, m, day] = surgeryDate.split("-").map(Number);
+  const d = new Date(y, m - 1, day);
   d.setMonth(d.getMonth() + months);
   return d;
 }
@@ -25,7 +26,6 @@ function getDaysUntil(date) {
 
 function fmtDate(d) {
   if (!d) return "";
-  // If it's a plain date string (YYYY-MM-DD), parse as local time to avoid UTC shift
   if (typeof d === "string" && /^\d{4}-\d{2}-\d{2}$/.test(d)) {
     const [y, m, day] = d.split("-").map(Number);
     return new Date(y, m - 1, day).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
@@ -37,20 +37,13 @@ function fmtMonth(d) {
   return new Date(d).toLocaleDateString("en-US", { month: "long", year: "numeric" });
 }
 
-function getDueDate(surgeryDate, months) {
-  const [y, m, day] = surgeryDate.split("-").map(Number);
-  const d = new Date(y, m - 1, day);
-  d.setMonth(d.getMonth() + months);
-  return d;
-}
-});
 function enrich(p) {
   const fus = MILESTONES.map(m => {
     const dueDate = getDueDate(p.surgery_date, m);
     const days = getDaysUntil(dueDate);
     const fu = p.follow_ups?.[m] || { completed: false, completedAt: null };
     return { months: m, dueDate, days, ...fu };
-    });
+  });
   const isOverdue = fus.some(f => !f.completed && f.days < 0);
   const isUrgent = fus.some(f => !f.completed && f.days >= 0 && f.days <= 14);
   const allDone = fus.every(f => f.completed) && p.baseline?.completed;
